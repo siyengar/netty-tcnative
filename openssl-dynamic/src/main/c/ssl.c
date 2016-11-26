@@ -1229,6 +1229,29 @@ static void ssl_info_callback(const SSL *ssl, int where, int ret) {
     }
 }
 
+// max_bio_size = 0 is the default BIO size.
+static jlong createNetworkBIO(jlong ssl, jint max_bio_size) {
+    SSL *ssl_ = J2P(ssl, SSL *);
+    BIO *internal_bio;
+    BIO *network_bio;
+
+    if (ssl_ == NULL) {
+        tcn_ThrowException(e, "ssl is null");
+        return 0;
+    }
+
+    if (BIO_new_bio_pair(&internal_bio, max_bio_size, &network_bio, max_bio_size) != 1) {
+        tcn_ThrowException(e, "BIO_new_bio_pair failed");
+        return 0;
+    }
+
+    UNREFERENCED(o);
+
+    SSL_set_bio(ssl_, internal_bio, internal_bio);
+
+    return P2J(network_bio);
+}
+
 TCN_IMPLEMENT_CALL(jlong /* SSL * */, SSL, newSSL)(TCN_STDARGS,
                                                    jlong ctx /* tcn_ssl_ctxt_t * */,
                                                    jboolean server) {
@@ -1477,28 +1500,19 @@ TCN_IMPLEMENT_CALL(void, SSL, freeSSL)(TCN_STDARGS,
     SSL_free(ssl_);
 }
 
-// Make a BIO pair (network and internal) for the provided SSL * and return the network BIO
+// Make a BIO pair (network and internal) for the provided SSL * with the default BIO size
+// and return the network BIO
 TCN_IMPLEMENT_CALL(jlong, SSL, makeNetworkBIO)(TCN_STDARGS,
                                                jlong ssl /* SSL * */) {
-    SSL *ssl_ = J2P(ssl, SSL *);
-    BIO *internal_bio;
-    BIO *network_bio;
+    return createNetworkBIO(ssl, 0);
+}
 
-    if (ssl_ == NULL) {
-        tcn_ThrowException(e, "ssl is null");
-        return 0;
-    }
-
-    if (BIO_new_bio_pair(&internal_bio, 0, &network_bio, 0) != 1) {
-        tcn_ThrowException(e, "BIO_new_bio_pair failed");
-        return 0;
-    }
-
-    UNREFERENCED(o);
-
-    SSL_set_bio(ssl_, internal_bio, internal_bio);
-
-    return P2J(network_bio);
+// Make a BIO pair (network and internal) for the provided SSL * with a max size and max size
+// of max_bio_size and return the network BIO
+TCN_IMPLEMENT_CALL(jlong, SSL, makeNetworkBIO)(TCN_STDARGS,
+                                               jlong ssl /* SSL * */,
+                                               jint max_bio_size) {
+    return createNetworkBIO(ssl, max_bio_size);
 }
 
 // Free a BIO * (typically, the network BIO)
