@@ -26,15 +26,15 @@
   <packaging>pom</packaging>
 
   <name>Netty/TomcatNative [Parent]</name>
-  <url>https://github.com/netty/netty-tcnative/</url>
+  <url>https://github.com/siyengar/netty-tcnative/</url>
   <description>
     A Mavenized fork of Tomcat Native which incorporates various patches
   </description>
 
   <scm>
-    <url>https://github.com/netty/netty-tcnative</url>
-    <connection>scm:git:git://github.com/netty/netty-tcnative.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/netty/netty-tcnative.git</developerConnection>
+    <url>https://github.com/siyengar/netty-tcnative</url>
+    <connection>scm:git:git://github.com/siyengar/netty-tcnative.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/siyengar/netty-tcnative.git</developerConnection>
     <tag>netty-tcnative-parent-1.1.33.Fork24-SNAPSHOT</tag>
   </scm>
 
@@ -263,7 +263,6 @@
           <arguments>-Prestricted-release,sonatype-oss-release -DmoduleSelector=none</arguments>
           <tagNameFormat>@{project.artifactId}-@{project.version}</tagNameFormat>
           <autoVersionSubmodules>true</autoVersionSubmodules>
-          <pushChanges>false</pushChanges>
         </configuration>
       </plugin>
 
