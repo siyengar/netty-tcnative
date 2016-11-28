@@ -39,12 +39,12 @@
       </activation>
 
       <properties>
-        <boringsslCheckoutDir>${project.build.directory}/boringssl-${boringsslBranch}</boringsslCheckoutDir>
-        <boringsslBuildDir>${boringsslCheckoutDir}/build</boringsslBuildDir>
+        <boringsslCheckoutDir>/data/users/subodh/tp2/openssl/boringssl/gcc-4.9-glibc-2.20/e9936bf</boringsslCheckoutDir>
+        <boringsslBuildDir>${boringsslCheckoutDir}</boringsslBuildDir>
         <linkStatic>true</linkStatic>
         <msvcSslIncludeDirs>${boringsslCheckoutDir}/include</msvcSslIncludeDirs>
-        <msvcSslLibDirs>${boringsslBuildDir}/ssl;${boringsslBuildDir}/crypto;${boringsslBuildDir}/decrepit</msvcSslLibDirs>
-        <msvcSslLibs>ssl.lib;crypto.lib;decrepit.lib</msvcSslLibs>
+        <msvcSslLibDirs>${boringsslBuildDir}/lib</msvcSslLibDirs>
+        <msvcSslLibs>ssl.lib;crypto.lib</msvcSslLibs>
       </properties>
 
       <build>
@@ -53,6 +53,7 @@
           <plugin>
             <artifactId>maven-scm-plugin</artifactId>
             <executions>
+              <!--
               <execution>
                 <id>get-boringssl</id>
                 <phase>generate-sources</phase>
@@ -68,6 +69,7 @@
                   <skipCheckoutIfExists>true</skipCheckoutIfExists>
                 </configuration>
               </execution>
+              -->
             </executions>
           </plugin>
 
@@ -122,7 +124,6 @@
                   </target>
                 </configuration>
               </execution>
-
               <!-- Build the BoringSSL static libs -->
               <execution>
                 <id>build-boringssl</id>
@@ -132,15 +133,22 @@
                 </goals>
                 <configuration>
                   <target>
-                    <!-- Add the ant tasks from ant-contrib -->
+                    <mkdir dir="${project.build.directory}/bore" />
+                    <copy todir="${project.build.directory}/bore">
+                      <fileset dir="${boringsslBuildDir}">
+                        <exclude name="**/libcrypto.a"/>
+                        <exclude name="**/libssl.a"/>
+                      </fileset>
+                    </copy>
+                    <move file="${project.build.directory}/bore/lib/libcrypto_pic.a" tofile="${project.build.directory}/bore/lib/libcrypto.a" />
+                    <move file="${project.build.directory}/bore/lib/libssl_pic.a" tofile="${project.build.directory}/bore/lib/libssl.a" />
+                    <!--
                     <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
-
                     <mkdir dir="${boringsslBuildDir}" />
 
                     <if>
                       <equals arg1="${os.detected.name}" arg2="windows" />
                       <then>
-                        <!-- On Windows, build with /MT for static linking -->
                         <exec executable="cmake" failonerror="true" dir="${boringsslBuildDir}" resolveexecutable="true">
                           <arg value="-DCMAKE_POSITION_INDEPENDENT_CODE=TRUE" />
                           <arg value="-DCMAKE_BUILD_TYPE=Release" />
@@ -151,21 +159,19 @@
                         </exec>
                       </then>
                       <else>
-                        <!-- On *nix, add ASM flags to disable executable stack -->
                         <exec executable="cmake" failonerror="true" dir="${boringsslBuildDir}" resolveexecutable="true">
                           <arg value="-DCMAKE_POSITION_INDEPENDENT_CODE=TRUE" />
                           <arg value="-DCMAKE_BUILD_TYPE=Release" />
-                          <arg value="-DCMAKE_ASM_FLAGS=-Wa,--noexecstack" />
                           <arg value="-GNinja" />
                           <arg value=".." />
                         </exec>
                       </else>
                     </if>
                     <exec executable="ninja" failonerror="true" dir="${boringsslBuildDir}" resolveexecutable="true" />
+                    -->
                   </target>
                 </configuration>
               </execution>
-
               <!-- Build the additional JAR that contains the native library. -->
               <execution>
                 <id>native-jar</id>
@@ -224,10 +230,11 @@
                   <windowsBuildTool>msbuild</windowsBuildTool>
                   <!-- <verbose>true</verbose> -->
                   <configureArgs>
-                    <configureArg>--with-ssl=no</configureArg>
+                    <configureArg>--with-ssl=${project.build.directory}/bore</configureArg>
                     <configureArg>--with-apr=${aprHome}</configureArg>
-                    <configureArg>CPPFLAGS=-DHAVE_OPENSSL -I${boringsslCheckoutDir}/include</configureArg>
-                    <configureArg>LDFLAGS=-L${boringsslBuildDir}/ssl -L${boringsslBuildDir}/crypto -L${boringsslBuildDir}/decrepit -ldecrepit -lssl -lcrypto</configureArg>
+                    <configureArg>CPPFLAGS=-DHAVE_OPENSSL -I${project.build.directory}/bore/include</configureArg>
+                    <configureArg>LDFLAGS=-L${project.build.directory}/bore/lib -lssl -lcrypto</configureArg>
+                    -->
                   </configureArgs>
                 </configuration>
               </execution>

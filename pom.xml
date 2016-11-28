@@ -164,6 +164,7 @@
             </goals>
             <configuration>
               <target if="${linkStatic}">
+                <setproxy proxyhost="fwdproxy" proxyport="8080"/>
                 <!-- Copy all of the code from the dynamic module -->
                 <delete dir="src" quiet="true" />
                 <mkdir dir="src" />

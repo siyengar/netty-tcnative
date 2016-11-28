@@ -31,7 +31,7 @@
   </description>
 
   <properties>
-    <opensslBuildDir>${project.build.directory}/openssl-${opensslVersion}</opensslBuildDir>
+    <opensslBuildDir>/data/users/subodh/projects/openssl/openssl-1.0.2j</opensslBuildDir>
     <linkStatic>true</linkStatic>
     <!-- Don't deploy this artifact to Maven Central -->
     <maven.deploy.skip>true</maven.deploy.skip>
@@ -120,60 +120,6 @@
         <plugins>
           <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>build-openssl</id>
-                <phase>generate-sources</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <target>
-                    <!-- Add the ant tasks from ant-contrib -->
-                    <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
-
-                    <!-- Download the openssl source. -->
-                    <ftp action="get" server="ftp.openssl.org" remotedir="source" userid="anonymous" password="anonymous" passive="yes" verbose="yes">
-                      <fileset dir="${project.build.directory}">
-                        <include name="**/openssl-${opensslVersion}.tar.gz" />
-                      </fileset>
-                    </ftp>
-                    <checksum file="${project.build.directory}/openssl-${opensslVersion}.tar.gz" algorithm="SHA-256" property="${opensslSha256}" verifyProperty="isEqual" />
-                    <gunzip src="${project.build.directory}/openssl-${opensslVersion}.tar.gz" dest="${project.build.directory}/" />
-                    <untar src="${project.build.directory}/openssl-${opensslVersion}.tar" dest="${project.build.directory}/" />
-
-                    <!-- Build for the correct platform -->
-                    <pathconvert property="sslHomePath" targetos="windows">
-                      <path location="${sslHome}" />
-                    </pathconvert>
-                    <if>
-                      <equals arg1="${archBits}" arg2="32" />
-                      <then>
-                        <echo message="Building OpenSSL for Win32" />
-                        <exec executable="perl" failonerror="true" dir="${opensslBuildDir}" resolveexecutable="true">
-                          <arg line="Configure VC-WIN32 --prefix=${sslHomePath}" />
-                        </exec>
-                        <exec executable="${opensslBuildDir}/ms/do_ms.bat" failonerror="true" dir="${opensslBuildDir}" />
-                        <exec executable="${opensslBuildDir}/ms/do_nasm.bat" failonerror="true" dir="${opensslBuildDir}" />
-                        <exec executable="nmake" failonerror="true" dir="${opensslBuildDir}" resolveexecutable="true">
-                          <arg line="-f ms\nt.mak all install" />
-                        </exec>
-                      </then>
-                      <else>
-                        <echo message="Building OpenSSL for Win64" />
-                        <exec executable="perl" failonerror="true" dir="${opensslBuildDir}" resolveexecutable="true">
-                          <arg line="Configure VC-WIN64A --prefix=${sslHome}" />
-                        </exec>
-                        <exec executable="${opensslBuildDir}/ms/do_win64a.bat" failonerror="true" dir="${opensslBuildDir}" />
-                        <exec executable="nmake" failonerror="true" dir="${opensslBuildDir}" resolveexecutable="true">
-                          <arg line="-f ms\nt.mak all install" />
-                        </exec>
-                      </else>
-                    </if>
-                  </target>
-                </configuration>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
@@ -198,21 +144,7 @@
                 </goals>
                 <configuration>
                   <target>
-                    <!-- Download the openssl source. -->
-                    <ftp action="get" server="ftp.openssl.org" remotedir="source" userid="anonymous" password="anonymous" passive="yes" verbose="yes">
-                      <fileset dir="${project.build.directory}">
-                        <include name="**/openssl-${opensslVersion}.tar.gz" />
-                      </fileset>
-                    </ftp>
-                    <!-- Use the tar command (rather than the untar ant task) in order to preserve file permissions. -->
-                    <exec executable="tar" failonerror="true" dir="${project.build.directory}/" resolveexecutable="true">
-                      <arg line="xfvz openssl-${opensslVersion}.tar.gz" />
-                    </exec>
-
                     <mkdir dir="${sslHome}" />
-                    <exec executable="config" failonerror="true" dir="${opensslBuildDir}" resolveexecutable="true">
-                      <arg line="-fPIC no-shared --prefix=${sslHome} --openssldir=${sslHome}" />
-                    </exec>
                     <exec executable="make" failonerror="true" dir="${opensslBuildDir}" resolveexecutable="true" />
                     <exec executable="make" failonerror="true" dir="${opensslBuildDir}" resolveexecutable="true">
                       <arg value="install" />
