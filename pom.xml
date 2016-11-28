@@ -263,6 +263,7 @@
           <arguments>-Prestricted-release,sonatype-oss-release -DmoduleSelector=none</arguments>
           <tagNameFormat>@{project.artifactId}-@{project.version}</tagNameFormat>
           <autoVersionSubmodules>true</autoVersionSubmodules>
+          <pushChanges>false</pushChanges>
         </configuration>
       </plugin>
 
